@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ค้นหาร้านอาหารที่เหมาะสมกับมื้อพิเศษของคุณ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+
+  :root {
+    --bg:#f6fbff;
+    --bg2:#eef8fb;
+    --surface:#ffffff;
+    --card:#ffffff;
+    --card2:#f7fcff;
+    --border:#dcecf1;
+    --soft-border:#bddde6;
+    --accent:#48b9c7;
+    --accent2:#8fd6df;
+    --accent3:#ffb7c8;
+    --veg:#69c98e;
+    --halal:#55bfa4;
+    --text:#294250;
+    --muted:#66818d;
+    --dim:#8aa3ad;
+    --danger:#f07f91;
+    --cream:#fff8ef;
+    --shadow:0 18px 45px rgba(72, 185, 199, .16);
+    --shadow-soft:0 8px 24px rgba(41, 66, 80, .08);
+    --radius:26px;
+    --radius-sm:18px;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { scroll-behavior:smooth; }
+  body {
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 12% -8%, rgba(143,216,223,.42), transparent 30%),
+      radial-gradient(circle at 90% 2%, rgba(255,183,200,.32), transparent 26%),
+      radial-gradient(circle at 50% 100%, rgba(255,248,239,.9), transparent 32%),
+      linear-gradient(180deg,#f8fdff 0%,#eef8fb 58%,#fff8ef 100%);
+    color:var(--text); font-family:'Noto Sans Thai',sans-serif; line-height:1.65;
+  }
+  a { color:inherit; }
+  .hero { padding:54px 20px 30px; text-align:center; position:relative; overflow:hidden; }
+  .hero::before, .hero::after { content:''; position:absolute; border-radius:999px; pointer-events:none; opacity:.55; }
+  .hero::before { width:220px; height:220px; background:rgba(143,216,223,.32); top:-90px; left:-70px; }
+  .hero::after { width:180px; height:180px; background:rgba(255,183,200,.28); right:-55px; top:35px; }
+  .hero-badge { display:inline-flex; gap:8px; align-items:center; color:#2f9ead; background:rgba(255,255,255,.76); border:1px solid rgba(72,185,199,.22); border-radius:999px; padding:9px 17px; font-size:12px; letter-spacing:.9px; text-transform:uppercase; margin-bottom:18px; box-shadow:var(--shadow-soft); backdrop-filter:blur(10px); }
+  .hero h1 { font-family:'Playfair Display','Noto Sans Thai',serif; font-size:clamp(34px,5vw,56px); line-height:1.12; margin-bottom:14px; color:#244858; letter-spacing:-.5px; }
+  .hero h1 span { color:#36aeba; }
+  .hero p { max-width:760px; margin:0 auto; color:var(--muted); font-size:15px; }
+  .hero-metrics { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:23px; }
+  .metric-pill { background:rgba(255,255,255,.82); border:1px solid var(--border); border-radius:999px; padding:9px 15px; color:var(--muted); font-size:12px; box-shadow:var(--shadow-soft); }
+  .metric-pill strong { color:#269dab; }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 20px 72px; }
+  .panel { background:rgba(255,255,255,.7); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+  .filter-grid { display:grid; grid-template-columns:1fr; gap:16px; }
+  .section { background:rgba(255,255,255,.86); border:1px solid rgba(220,236,241,.95); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-soft); backdrop-filter:blur(10px); }
+  .section-title { display:flex; justify-content:space-between; align-items:center; gap:10px; color:#36616d; font-size:14px; font-weight:900; letter-spacing:.25px; margin-bottom:15px; }
+  .hint { font-size:12px; color:var(--dim); font-weight:600; letter-spacing:0; text-transform:none; background:#f0fbfd; border:1px solid #d8f0f4; padding:5px 10px; border-radius:999px; }
+  .pill-group,.allergy-grid { display:flex; flex-wrap:wrap; gap:10px; }
+  .pill,.allergy-tag { cursor:pointer; border:1.5px solid var(--border); background:linear-gradient(180deg,#ffffff,#f7fcff); color:var(--muted); padding:11px 17px; border-radius:999px; font-size:13px; font-family:'Noto Sans Thai',sans-serif; transition:.2s ease; user-select:none; box-shadow:0 5px 14px rgba(41,66,80,.045); }
+  .pill:hover,.allergy-tag:hover { transform:translateY(-2px); color:#2e5965; border-color:var(--soft-border); box-shadow:0 10px 22px rgba(72,185,199,.12); }
+  .pill.active { color:#ffffff; background:linear-gradient(135deg,#43b6c4,#7edce4); border-color:transparent; font-weight:900; box-shadow:0 10px 24px rgba(72,185,199,.24); }
+  .pill.veg-pill.active { color:#ffffff; background:linear-gradient(135deg,#58c783,#a6e6bb); }
+  .pill.halal-pill.active { color:#ffffff; background:linear-gradient(135deg,#55bfa4,#99e3d1); }
+  .size-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .size-card { cursor:pointer; border:1.5px solid var(--border); background:linear-gradient(180deg,#fff,#f6fcff); border-radius:22px; padding:18px 14px; text-align:center; transition:.22s ease; box-shadow:0 6px 18px rgba(41,66,80,.05); }
+  .size-card:hover { transform:translateY(-3px); border-color:var(--soft-border); box-shadow:0 14px 28px rgba(72,185,199,.14); }
+  .size-card.active { background:linear-gradient(180deg,#e9fbfe,#ffffff); border-color:#66c8d3; box-shadow:0 0 0 5px rgba(72,185,199,.12), 0 14px 30px rgba(72,185,199,.16); }
+  .size-card .emoji { font-size:30px; display:block; margin-bottom:7px; }
+  .size-card .label { font-weight:900; color:#2d5965; }
+  .size-card .sublabel { font-size:12px; color:var(--muted); margin-top:2px; }
+  .notice { display:flex; gap:10px; margin-top:12px; padding:14px 15px; border-radius:18px; background:#effbfd; border:1px solid #cfedf2; color:#47737d; font-size:12px; }
+  .allergy-tag { display:flex; align-items:center; gap:8px; }
+  .allergy-tag .dot { width:9px; height:9px; border-radius:50%; background:#c8dce3; }
+  .allergy-tag.active { color:#d95f78; border-color:rgba(240,127,145,.38); background:#fff2f5; }
+  .allergy-tag.active .dot { background:var(--danger); }
+  .scoring-table { display:none; }
+  .search-line { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:center; padding:25px 0 8px; }
+  .search-btn,.reset-btn { border:0; border-radius:999px; padding:15px 30px; cursor:pointer; font-family:'Noto Sans Thai',sans-serif; font-weight:900; transition:.22s ease; }
+  .search-btn { background:linear-gradient(135deg,#43b6c4,#7edce4); color:white; box-shadow:0 12px 28px rgba(72,185,199,.24); }
+  .reset-btn { background:rgba(255,255,255,.84); color:var(--muted); border:1px solid var(--border); box-shadow:var(--shadow-soft); }
+  .search-btn:hover,.reset-btn:hover { transform:translateY(-2px); }
+  .results-section { display:none; margin-top:28px; }
+  .results-header { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+  .results-count { color:var(--muted); }
+  .results-count strong { color:#269dab; font-size:25px; }
+  .sort-select { background:#fff; color:var(--text); border:1px solid var(--border); border-radius:15px; padding:11px 15px; outline:none; font-family:'Noto Sans Thai',sans-serif; box-shadow:var(--shadow-soft); }
+  .ai-summary { display:none; margin-bottom:16px; }
+  .summary-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:14px; }
+  .summary-card { background:linear-gradient(180deg,#ffffff,#effbfd); border:1px solid #d2edf2; border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-soft); }
+  .summary-card h2,.insight-card h2 { font-size:18px; margin-bottom:10px; color:#2d5965; }
+  .top-list { display:grid; gap:10px; }
+  .top-item { display:grid; grid-template-columns:38px 1fr auto; gap:10px; align-items:center; padding:12px; border-radius:18px; background:rgba(255,255,255,.78); border:1px solid #e2f2f5; }
+  .rank-no { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#ffb7c8,#ffd6df); color:#9a3d52; display:grid; place-items:center; font-weight:900; }
+  .top-name { font-weight:900; color:#294b57; }
+  .top-reason { color:var(--muted); font-size:12px; margin-top:2px; }
+  .top-score { color:#269dab; font-weight:900; font-size:18px; }
+  .insight-card { background:rgba(255,255,255,.86); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-soft); }
+  .insight-card ul { padding-left:20px; color:var(--muted); font-size:13px; }
+  .restaurant-grid { display:grid; gap:14px; }
+  .r-card { position:relative; overflow:hidden; background:linear-gradient(180deg,#ffffff,#f7fcff); border:1px solid var(--border); border-radius:var(--radius); padding:20px; transition:.22s ease; animation:fadeInUp .28s ease both; box-shadow:var(--shadow-soft); }
+  .r-card:hover { transform:translateY(-2px); border-color:var(--soft-border); box-shadow:var(--shadow); }
+  .r-card::before { content:''; position:absolute; top:0; left:0; width:7px; height:100%; background:linear-gradient(180deg,#7edce4,#ffb7c8); }
+  .r-main { display:grid; grid-template-columns:1fr 150px; gap:18px; }
+  .r-name { font-size:18px; font-weight:900; line-height:1.35; color:#294b57; }
+  .r-sub { color:var(--dim); font-size:12px; margin-top:2px; }
+  .r-tags { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
+  .r-tag { font-size:11px; padding:5px 10px; border-radius:999px; border:1px solid var(--border); color:var(--muted); background:#fff; }
+  .tag-area { color:#269dab; border-color:#cdeaf0; background:#effbfd; }
+  .tag-halal { color:#3a9f87; border-color:rgba(76,175,138,.28); background:#effbf6; font-weight:900; }
+  .tag-veg { color:#4aa86e; border-color:rgba(104,199,127,.3); background:#f1fbf4; font-weight:900; }
+  .tag-warn { color:#d95f78; border-color:rgba(240,127,145,.25); background:#fff2f5; }
+  .tag-caution { color:#b56a00; border-color:rgba(245,166,35,.28); background:#fff8e8; }
+  .tag-alert { color:#c93b52; border-color:rgba(217,95,120,.38); background:#ffeef3; font-weight:800; }
+  .allergen-note { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; color:var(--muted); font-size:12px; }
+  .allergen-note strong { color:var(--text); }
+  .r-info { color:var(--muted); font-size:13px; display:grid; gap:5px; }
+  .scorebox { background:linear-gradient(180deg,#effbfd,#ffffff); border:1px solid #cdeaf0; border-radius:20px; padding:14px; text-align:center; box-shadow:inset 0 1px 0 rgba(255,255,255,.8); }
+  .scorebox .label { color:var(--muted); font-size:11px; text-transform:none; letter-spacing:.3px; font-weight:800; }
+  .scorebox .num { font-size:34px; line-height:1.05; font-weight:900; color:#269dab; }
+  .scorebox .unit { color:var(--dim); font-size:12px; }
+  .breakdown { display:grid; gap:7px; margin-top:14px; }
+  .bar-row { display:grid; grid-template-columns:130px 1fr 42px; align-items:center; gap:9px; color:var(--muted); font-size:11px; }
+  .bar { height:7px; border-radius:999px; background:#eaf4f7; overflow:hidden; }
+  .bar > div { height:100%; border-radius:inherit; background:linear-gradient(90deg,#7edce4,#ffb7c8); }
+  .ai-text { margin-top:14px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .mini-note { background:#fff; border:1px solid var(--border); border-radius:17px; padding:12px; color:var(--muted); font-size:12px; }
+  .mini-note strong { color:#2d5965; }
+  .r-actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:14px; }
+  .r-btn { display:inline-flex; align-items:center; gap:6px; text-decoration:none; border-radius:999px; padding:9px 14px; font-size:12px; font-weight:900; border:1px solid var(--border); color:var(--muted); background:#fff; box-shadow:0 4px 12px rgba(41,66,80,.04); }
+  .btn-maps { color:#269dab; border-color:#cdeaf0; background:#effbfd; }
+  .empty-state { text-align:center; padding:70px 20px; color:var(--muted); background:rgba(255,255,255,.8); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-soft); }
+  .empty-state .big-icon { font-size:54px; margin-bottom:8px; }
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+  @media (max-width:820px) {
+    .size-cards,.summary-grid,.r-main,.ai-text { grid-template-columns:1fr; }
+    .scorebox { text-align:left; }
+    .bar-row { grid-template-columns:110px 1fr 38px; }
+  }
+  @media (max-width:560px) {
+    .wrap { padding-left:14px; padding-right:14px; }
+    .section { padding:18px 14px; }
+    .section-title { align-items:flex-start; flex-direction:column; }
+    .pill,.allergy-tag { width:100%; justify-content:center; }
+    .top-item { grid-template-columns:34px 1fr; }
+    .top-score { grid-column:2; font-size:15px; }
+  }
+
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-badge">🍽️ Restaurant Finder</div>
+  <h1>ค้นหาร้านอาหาร<br><span>สำหรับมื้อพิเศษของคุณ</span></h1>
+  <p>เลือกพื้นที่ จำนวนคน ประเภทอาหาร และข้อจำกัดการทาน แล้วระบบจะช่วยแนะนำร้านที่เหมาะกับทีมแบบอ่านง่าย สบายตา</p>
+  <div class="hero-metrics">
+    <div class="metric-pill"><strong>46</strong> ร้านอาหาร</div>
+    <div class="metric-pill"><strong>6</strong> ปัจจัยประเมิน</div>
+    <div class="metric-pill"><strong>Top 3</strong> ร้านแนะนำ</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="filter-grid">
+    <div class="section">
+      <div class="section-title"><span>📍 เลือกพื้นที่</span><span class="hint">เลือกได้ 1 พื้นที่</span></div>
+      <div class="pill-group" id="areaGroup">
+        <div class="pill active" data-value="all">ทั้งหมด</div>
+        <div class="pill" data-value="สยาม">สยาม</div>
+        <div class="pill" data-value="อารีย์">อารีย์</div>
+        <div class="pill" data-value="ทองหล่อ">ทองหล่อ</div>
+        <div class="pill" data-value="อโศก">อโศก</div>
+        <div class="pill" data-value="พร้อมพงษ์">พร้อมพงษ์</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span>👥 จำนวนคนในทีม</span><span class="hint">เลือกจำนวนคนที่ไปทาน</span></div>
+      <div class="size-cards" id="sizeGroup">
+        <div class="size-card" data-value="1-3"><span class="emoji">👤</span><div class="label">1–3 คน</div><div class="sublabel">มื้อส่วนตัว / คู่</div></div>
+        <div class="size-card" data-value="3-5"><span class="emoji">👥</span><div class="label">3–5 คน</div><div class="sublabel">กลุ่มเล็ก / เพื่อน</div></div>
+        <div class="size-card" data-value="5-8"><span class="emoji">🧑‍🤝‍🧑</span><div class="label">5–8 คน</div><div class="sublabel">Team Lunch / Dinner</div></div>
+        <div class="size-card" data-value="8-12"><span class="emoji">🎉</span><div class="label">8–12 คน</div><div class="sublabel">ทีมใหญ่ / ต้องจอง</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span>🍽️ ประเภทอาหาร</span><span class="hint">เพิ่มตัวเลือกมังสวิรัติ</span></div>
+      <div class="pill-group" id="catGroup">
+        <div class="pill active" data-value="all">ทั้งหมด</div>
+        <div class="pill" data-value="ไทย / อีสาน">ไทย / อีสาน</div>
+        <div class="pill" data-value="ญี่ปุ่น / Japanese">ญี่ปุ่น 🇯🇵</div>
+        <div class="pill" data-value="เกาหลี / Korean">เกาหลี 🇰🇷</div>
+        <div class="pill" data-value="จีน / ติ่มซำ">จีน / ติ่มซำ</div>
+        <div class="pill" data-value="ชาบู / สุกี้">ชาบู / สุกี้</div>
+        <div class="pill" data-value="ฟิวชั่น / International">ฟิวชั่น / Intl</div>
+        <div class="pill" data-value="สุขภาพ / สลัด / สเต็ก">สุขภาพ / สเต็ก</div>
+        <div class="pill" data-value="คาเฟ่ / เบเกอรี่ / ของหวาน">คาเฟ่ / ของหวาน</div>
+        <div class="pill" data-value="ญี่ปุ่น / Izakaya">Izakaya</div>
+        <div class="pill veg-pill" data-value="vegetarian">🥬 มังสวิรัติ / Vegetarian Friendly</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span>🔖 ตัวกรองพิเศษ</span><span class="hint">เหมาะกับทีมที่มีข้อจำกัดอาหาร</span></div>
+      <div class="pill-group">
+        <div class="pill halal-pill" id="halalToggle">☪️ แสดงเฉพาะร้านฮาลาล</div>
+        <div class="pill veg-pill" id="vegToggle">🥬 มังสวิรัติ</div>
+      </div>
+      <div class="notice"><span>ℹ️</span><span>ข้อมูลฮาลาล/มังสวิรัติเป็นการคัดกรองเบื้องต้นจากประเภทอาหารและข้อมูลร้าน กรุณาโทรสอบถามร้านโดยตรงก่อนจอง โดยเฉพาะกรณีเคร่งเรื่องวัตถุดิบหรือการปนเปื้อน</span></div>
+      <div style="height:16px"></div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:10px;font-weight:800;">⚠️ แพ้อาหาร — เลือกสิ่งที่ต้องหลีกเลี่ยง</div>
+      <div class="allergy-grid" id="allergyGroup">
+        <div class="allergy-tag" data-type="seafood"><div class="dot"></div>🦐 แพ้อาหารทะเล</div>
+        <div class="allergy-tag" data-type="pork"><div class="dot"></div>🐷 ไม่รับประทานเนื้อหมู</div>
+        <div class="allergy-tag" data-type="gluten"><div class="dot"></div>🌾 แพ้กลูเตน / แป้งสาลี</div>
+        <div class="allergy-tag" data-type="nut"><div class="dot"></div>🥜 แพ้ถั่ว</div>
+        <div class="allergy-tag" data-type="dairy"><div class="dot"></div>🥛 แพ้นมและผลิตภัณฑ์นม</div>
+        <div class="allergy-tag" data-type="egg"><div class="dot"></div>🥚 แพ้ไข่</div>
+      </div>
+      <div style="margin-top:10px;color:var(--dim);font-size:12px;">* กลูเตน, ถั่ว, นม และไข่ใช้เป็นการแจ้งเตือนประกอบการเลือก ไม่ได้ตัดร้านออกอัตโนมัติ เพราะข้อมูลวัตถุดิบละเอียดไม่มีในชุดข้อมูล</div>
+    </div>
+</div>
+
+  <div class="search-line">
+    <button class="search-btn" onclick="doSearch()">🔍 ค้นหาร้านที่เหมาะที่สุด</button>
+    <button class="reset-btn" onclick="resetFilters()">รีเซ็ตตัวกรอง</button>
+  </div>
+
+  <div class="results-section" id="resultsSection">
+    <div class="results-header">
+      <div class="results-count">พบ <strong id="resultCount">0</strong> ร้าน</div>
+      <select class="sort-select" id="sortSelect" onchange="renderCards(currentResults)">
+        <option value="ai">เรียงตามคะแนนแนะนำ (สูง→ต่ำ)</option>
+        <option value="rating">เรียงตามคะแนน Google (สูง→ต่ำ)</option>
+        <option value="reviews">เรียงตามรีวิว (มาก→น้อย)</option>
+        <option value="name">เรียงตามชื่อ (ก→ฮ)</option>
+      </select>
+    </div>
+    <div class="ai-summary" id="aiSummary"></div>
+    <div class="restaurant-grid" id="restaurantGrid"></div>
+  </div>
+</div>
+
+<script>
+const RESTAURANTS = [{"id":"1","name":"Poet House Cafe","area":"อารีย์","district":"เขตพญาไท","category":"คาเฟ่ / เบเกอรี่ / ของหวาน","businessType":"Cafe / Dessert","rating":4.3,"reviews":509,"address":"ชอย อารีย์ 5","phone":"+66 89 742 2299","website":"https://www.facebook.com/poethouse.ari5/?ref=bookmarks","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Poet%20House%20Cafe&query_place_id=ChIJBwww1hyc4jAR6Y-Pg-V_MHQ","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดี (4.0-4.49)"},{"id":"2","name":"Perb (เปิบ) อารีย์ ซอย1","area":"อารีย์","district":"เขตพญาไท","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.4,"reviews":319,"address":"ตึก A, One Ari, ชั้น4, 9/2 ซอย อารีย์ 1","phone":"+66 91 299 2171","website":"https://www.facebook.com/perbbkk/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Perb%20(%E0%B9%80%E0%B8%9B%E0%B8%B4%E0%B8%9A)%20%E0%B8%AD%E0%B8%B2%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B9%8C%20%E0%B8%8B%E0%B8%AD%E0%B8%A21&query_place_id=ChIJfSHBpP-d4jARMTq0BQWZu00","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดี (4.0-4.49)"},{"id":"3","name":"กับข้าว' กับปลา ลา วิลล่า อารีย์","area":"อารีย์","district":"เขตพญาไท","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.2,"reviews":668,"address":"อาคาร La Villa ถ. พหลโยธิน","phone":"+66 2 613 0544","website":"http://www.kubkao-kubpla.com/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%81%E0%B8%B1%E0%B8%9A%E0%B8%82%E0%B9%89%E0%B8%B2%E0%B8%A7'%20%E0%B8%81%E0%B8%B1%E0%B8%9A%E0%B8%9B%E0%B8%A5%E0%B8%B2%20%E0%B8%A5%E0%B8%B2%20%E0%B8%A7%E0%B8%B4%E0%B8%A5%E0%B8%A5%E0%B9%88%E0%B8%B2%20%E0%B8%AD%E0%B8%B2%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B9%8C&query_place_id=ChIJR3fYjB2c4jARiAjjyWOgEn4","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":false,"ratingLevel":"ดี (4.0-4.49)"},{"id":"4","name":"Kinroll - Ari | กินโรล - อารีย์","area":"อารีย์","district":"เขตพญาไท","category":"ญี่ปุ่น / Japanese","businessType":"Restaurant","rating":4.8,"reviews":397,"address":"Ari, ซอย อารีย์ 4 ฝั่งเหนือ","phone":"+66 64 839 8284","website":"https://www.facebook.com/Kinroll.ari","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Kinroll%20-%20Ari%20%7C%20%E0%B8%81%E0%B8%B4%E0%B8%99%E0%B9%82%E0%B8%A3%E0%B8%A5%20-%20%E0%B8%AD%E0%B8%B2%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B9%8C&query_place_id=ChIJXV78UEKd4jARC52Rr3NnqBY","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"5","name":"Fishmonger Ari","area":"อารีย์","district":"เขตพญาไท","category":"ร้านอาหารทั่วไป / ไม่ระบุประเภท","businessType":"Restaurant","rating":4.4,"reviews":1023,"address":"10, 6 ซอย อารีย์ 4","phone":"+66 92 956 1905","website":"https://www.facebook.com/profile.php?id=100077382399717","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Fishmonger%20Ari&query_place_id=ChIJi9oe0BSd4jARrjC1zDGgfb4","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":false,"ratingLevel":"ดี (4.0-4.49)"},{"id":"6","name":"ครัวแม่ปัญญา","area":"อารีย์","district":"เขตพญาไท","category":"ร้านอาหารทั่วไป / ไม่ระบุประเภท","businessType":"Restaurant","rating":4.4,"reviews":262,"address":"1/22, ซอยอารีย์ 2 ถนนพลโยธิน","phone":"+66 2 279 4787","website":"https://m.facebook.com/kruamaepanya/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%84%E0%B8%A3%E0%B8%B1%E0%B8%A7%E0%B9%81%E0%B8%A1%E0%B9%88%E0%B8%9B%E0%B8%B1%E0%B8%8D%E0%B8%8D%E0%B8%B2&query_place_id=ChIJ2-Kuv6ee4jARBFIceBSs6sA","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดี (4.0-4.49)"},{"id":"7","name":"Snaka snake café","area":"สยาม","district":"เขตลาดกระบัง","category":"คาเฟ่ / เบเกอรี่ / ของหวาน","businessType":"Cafe / Dessert","rating":5.0,"reviews":224,"address":"969 ถ. หลวงแพ่ง","phone":"","website":"","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Snaka%20snake%20caf%C3%A9&query_place_id=ChIJZbr0vZ9pHTERgCXab_g6-s8","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"8","name":"Huajai ร้านหัวใจ (Pop-up)","area":"สยาม","district":"เขตปทุมวัน","category":"ร้านอาหารทั่วไป / ไม่ระบุประเภท","businessType":"Restaurant","rating":4.8,"reviews":213,"address":"ชั้น 2, สยามสแควร์วัน ถ. พระรามที่ 1","phone":"+66 64 607 9517","website":"","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Huajai&query_place_id=ChIJF4HflF-f4jARQJQc5fu64fM","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"9","name":"Lucky's Hungry สาขา HAUS อารีย์","area":"อารีย์","district":"เขตพญาไท","category":"ฟิวชั่น / International","businessType":"Restaurant","rating":4.7,"reviews":1525,"address":"9 1 ซ. อารีย์ 3","phone":"+66 88 696 6556","website":"https://www.luckyshungry.com/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Lucky%E2%80%99s%20Hungry&query_place_id=ChIJc6nvAmGd4jAREp6SCD85N_Q","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"10","name":"Miss Siam Restaurant","area":"สยาม","district":"เขตปทุมวัน","category":"ร้านอาหารทั่วไป / ไม่ระบุประเภท","businessType":"Restaurant","rating":4.7,"reviews":49,"address":"400 ถ. พญาไท","phone":"+66 2 217 0721","website":"","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Miss%20Siam%20Restaurant&query_place_id=ChIJ3-VagW6f4jARTZSahLdTbfM","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"11","name":"Renga sukiyaki (เรนกะ) อารีย์","area":"อารีย์","district":"เขตพญาไท","category":"ชาบู / สุกี้","businessType":"Restaurant","rating":4.9,"reviews":3873,"address":"40/1 ซ. พหลโยธิน 7","phone":"+66 63 959 8555","website":"https://www.facebook.com/profile.php?id=61558951584516","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Renga%20sukiyaki&query_place_id=ChIJ5dCi1Caf4jARO3ksbPnH0Jg","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"12","name":"KIN DONBURI สยามสแควร์วัน","area":"สยาม","district":"เขตปทุมวัน","category":"ญี่ปุ่น / Japanese","businessType":"Restaurant","rating":4.6,"reviews":73,"address":"Siam Square One ชั้น 5","phone":"+66 91 890 5573","website":"","mapsUrl":"https://www.google.com/maps/search/?api=1&query=KIN%20DONBURI%20Siam&query_place_id=ChIJsdoxk1mf4jARMCvxdE4TJaM","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"13","name":"เพลินพุง Noodles & More สยามสแควร์วัน","area":"สยาม","district":"เขตปทุมวัน","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.4,"reviews":741,"address":"388 ถ. พระรามที่ 1","phone":"+66 2 252 2044","website":"","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B9%80%E0%B8%9E%E0%B8%A5%E0%B8%B4%E0%B8%99%E0%B8%9E%E0%B8%B8%E0%B8%87%20Noodles&query_place_id=ChIJ1Uu7FtKe4jARgx25ZPYFGbQ","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดี (4.0-4.49)"},{"id":"14","name":"โอ้กะจู๋ สาขาสยามสแควร์วัน","area":"สยาม","district":"เขตปทุมวัน","category":"สุขภาพ / สลัด / สเต็ก","businessType":"Restaurant","rating":4.4,"reviews":1590,"address":"388 ถ. พระรามที่ 1","phone":"+66 82 444 2251","website":"","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B9%82%E0%B8%AD%E0%B9%89%E0%B8%81%E0%B8%B0%E0%B8%88%E0%B8%B9%E0%B9%8B%20SQ1&query_place_id=ChIJV157mDGZ4jARrvO4db7HAvw","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดี (4.0-4.49)"},{"id":"15","name":"ส้มตำนัว","area":"สยาม","district":"เขตปทุมวัน","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.4,"reviews":3505,"address":"392, 12-14 ถ. พระรามที่ 1","phone":"+66 80 068 1022","website":"","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%AA%E0%B9%89%E0%B8%A1%E0%B8%95%E0%B8%B3%E0%B8%99%E0%B8%B1%E0%B8%A7&query_place_id=ChIJe5jdmNeZ4jARNzb36wTdDws","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดี (4.0-4.49)"},{"id":"16","name":"Rose Apple Cuisine","area":"อารีย์","district":"เขตพญาไท","category":"ร้านอาหารทั่วไป / ไม่ระบุประเภท","businessType":"Restaurant","rating":4.6,"reviews":149,"address":"28 ซอย พหลโยธิน 6","phone":"+66 86 366 3478","website":"https://m.facebook.com/Rose-Apple-Cuisine-609030299233843/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Rose%20Apple%20Cuisine&query_place_id=ChIJn2Lx-x2c4jAR51E6IsZvRck","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"17","name":"The Tongkeun-Gui Korean BBQ","area":"สยาม","district":"เขตปทุมวัน","category":"เกาหลี / Korean","businessType":"Bar / Restaurant","rating":4.5,"reviews":715,"address":"218/8 สยามสแควร์ ซอย 1","phone":"+66 2 252 8392","website":"https://www.facebook.com/Tongkeungui/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=The%20Tongkeun-Gui%20Korean%20BBQ&query_place_id=ChIJqcPhmtKe4jARU6vwhrzmIuE","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"18","name":"สรรพรส สยามพารากอน โดย เชฟซีตรอง","area":"สยาม","district":"เขตปทุมวัน","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.8,"reviews":160,"address":"ชั้น 5 991 ถ. พระรามที่ 1 สยามพารากอน","phone":"+66 95 582 6669","website":"https://www.facebook.com/Sapparos.ThaiFlavors","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%AA%E0%B8%A3%E0%B8%A3%E0%B8%9E%E0%B8%A3%E0%B8%AA%20Siam%20Paragon&query_place_id=ChIJKd8923Of4jARrTljSwahDdQ","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"19","name":"โค-ร-ต KORATA (Siam Square)","area":"สยาม","district":"เขตปทุมวัน","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.9,"reviews":2543,"address":"สยามสแควร์ ซอย 3","phone":"+66 2 001 3746","website":"https://openlink.co/korata_th","mapsUrl":"https://www.google.com/maps/search/?api=1&query=KORATA%20Siam%20Square&query_place_id=ChIJ0xYxXwCf4jARPtJNOp_WXm8","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"20","name":"ต้นโอ๊ก","area":"สยาม","district":"เขตปทุมวัน","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.5,"reviews":305,"address":"432/5 ซอย สยามสแควร์ 9","phone":"+66 97 241 0651","website":"https://linktr.ee/tonoakrestaurant","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%95%E0%B9%89%E0%B8%99%E0%B9%82%E0%B8%AD%E0%B9%8A%E0%B8%81&query_place_id=ChIJmRfAQNKe4jARRomB784P5g0","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"21","name":"Inter Restaurant since 1981","area":"สยาม","district":"เขตปทุมวัน","category":"จีน / ติ่มซำ","businessType":"Restaurant","rating":4.4,"reviews":3030,"address":"432/1-2 ซอย สยามสแควร์ 9","phone":"+66 2 251 4689","website":"https://www.facebook.com/InterRestaurants1981","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Inter%20Restaurant%201981&query_place_id=ChIJV1UGZABiHTERoiXISIWa6-o","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":false,"ratingLevel":"ดี (4.0-4.49)"},{"id":"22","name":"นารา ไทยคูซีน สยามพารากอน","area":"สยาม","district":"เขตปทุมวัน","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.7,"reviews":2460,"address":"991 ถ. พระรามที่ 1 สยามพารากอน","phone":"+66 2 129 4863","website":"http://www.naracuisine.com/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%99%E0%B8%B2%E0%B8%A3%E0%B8%B2%20Siam%20Paragon&query_place_id=ChIJydbe6c2e4jARwqxg9p3rK9Y","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"23","name":"โอฮาชิ บูตะดง","area":"อารีย์","district":"เขตพญาไท","category":"ญี่ปุ่น / Japanese","businessType":"Restaurant","rating":4.6,"reviews":725,"address":"1251 ถ. พหลโยธิน","phone":"+66 92 538 9449","website":"http://www.facebook.com/ohachibutadon/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B9%82%E0%B8%AD%E0%B8%AE%E0%B8%B2%E0%B8%8A%E0%B8%B4%20%E0%B8%9A%E0%B8%B9%E0%B8%95%E0%B8%B0%E0%B8%94%E0%B8%87&query_place_id=ChIJVSxzD0qd4jARMabSetrkBJo","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":true,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"24","name":"White Flower Factory - ครัวดอกไม้ขาว","area":"สยาม","district":"เขตปทุมวัน","category":"ไทย / อีสาน","businessType":"Cafe / Dessert","rating":4.6,"reviews":1521,"address":"388 ถ. พระรามที่ 1 สยามสแควร์วัน","phone":"+66 99 002 0897","website":"https://lin.ee/apXJZm3","mapsUrl":"https://www.google.com/maps/search/?api=1&query=White%20Flower%20Factory%20Siam&query_place_id=ChIJ937RdtKe4jARPRuzBAQLNxc","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"25","name":"บ้านพึงชม","area":"อารีย์","district":"เขตพญาไท","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.2,"reviews":1630,"address":"38 ซ. พหลโยธิน 7","phone":"+66 2 279 4204","website":"","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%9A%E0%B9%89%E0%B8%B2%E0%B8%99%E0%B8%9E%E0%B8%B6%E0%B8%87%E0%B8%8A%E0%B8%A1&query_place_id=ChIJDeDuUByc4jARIqwSs_XcM2M","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดี (4.0-4.49)"},{"id":"26","name":"โซซาคุ อารีย์","area":"อารีย์","district":"เขตพญาไท","category":"ญี่ปุ่น / Japanese","businessType":"Restaurant","rating":4.6,"reviews":1122,"address":"39 1 ซอย พหลโยธิน 7","phone":"+66 88 229 3939","website":"http://www.facebook.com/SousakuSushi","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B9%82%E0%B8%8B%E0%B8%8B%E0%B8%B2%E0%B8%84%E0%B8%B8%20%E0%B8%AD%E0%B8%B2%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B9%8C&query_place_id=ChIJs3BZdR2c4jARB8V8iANTx7o","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"27","name":"TenTen ชาบู 4 สี หมีออนเซน","area":"สยาม","district":"เขตปทุมวัน","category":"ชาบู / สุกี้","businessType":"Restaurant","rating":4.8,"reviews":5609,"address":"388 ชั้น 5 สยามสแควร์วัน","phone":"+66 62 479 1623","website":"https://www.facebook.com/tentenshabusushi","mapsUrl":"https://www.google.com/maps/search/?api=1&query=TenTen%20Shabu%20Siam&query_place_id=ChIJOS7Ez9-f4jARk2lpG0azP2k","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"28","name":"KOFUKU (โคฟุกุ) Centerpoint Siam Square","area":"สยาม","district":"เขตปทุมวัน","category":"ญี่ปุ่น / Japanese","businessType":"Restaurant","rating":4.8,"reviews":1348,"address":"ชั้น 4 Center Point Siam","phone":"+66 65 582 7598","website":"https://m.facebook.com/Kofukuoriginalstyle","mapsUrl":"https://www.google.com/maps/search/?api=1&query=KOFUKU%20Siam%20Square&query_place_id=ChIJDcQcvpOf4jAR1EnsJgAoDDI","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":true,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"29","name":"Kogoro Katsu - Siam Square","area":"สยาม","district":"เขตปทุมวัน","category":"ญี่ปุ่น / Japanese","businessType":"Restaurant","rating":4.6,"reviews":675,"address":"ชั้น2 สยามสแควร์ ซอย 7","phone":"+66 2 115 6153","website":"https://www.facebook.com/kogorokatsu","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Kogoro%20Katsu%20Siam%20Square&query_place_id=ChIJKecafDif4jARJS68RoibFw4","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":true,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"30","name":"เซนิกุเทน อารีย์","area":"อารีย์","district":"เขตพญาไท","category":"ญี่ปุ่น / Japanese","businessType":"Restaurant","rating":4.5,"reviews":1514,"address":"40 ซอย เจือจิตร","phone":"+66 89 988 2345","website":"https://www.facebook.com/seinikuten.thailand","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B9%80%E0%B8%8B%E0%B8%99%E0%B8%B4%E0%B8%81%E0%B8%B8%E0%B9%80%E0%B8%97%E0%B8%99%20%E0%B8%AD%E0%B8%B2%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B9%8C&query_place_id=ChIJ95SfUxyc4jARx8SwhPXpSBQ","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"31","name":"อิโมยะ","area":"ทองหล่อ","district":"เขตคลองเตย","category":"ญี่ปุ่น / Izakaya","businessType":"Restaurant","rating":4.4,"reviews":505,"address":"2/17-19 ซ.สุขุมวิท 24","phone":"+66 2 258 4995","website":"","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%AD%E0%B8%B4%E0%B9%82%E0%B8%A1%E0%B8%A2%E0%B8%B0&query_place_id=ChIJaeqJggGf4jARnt6aEriP2vE","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":false,"ratingLevel":"ดี (4.0-4.49)"},{"id":"32","name":"AT ISAN (แอทอีสาน)","area":"พร้อมพงษ์","district":"เขตวัฒนา","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.9,"reviews":492,"address":"593/21 ซ. สุขุมวิท 33/1","phone":"+66 96 015 5942","website":"","mapsUrl":"https://www.google.com/maps/search/?api=1&query=AT%20ISAN%20Sukhumvit&query_place_id=ChIJW9a2Tjaf4jARYB5p5vh1sFw","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"33","name":"อร่อย อารีย์ Aroi Ari","area":"อารีย์","district":"เขตพญาไท","category":"ไทย / อีสาน","businessType":"Cafe / Dessert","rating":4.6,"reviews":129,"address":"136 พระรามที่ 6 ซอย 30","phone":"+66 65 242 2947","website":"https://www.facebook.com/share/15xvtKhbbH/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Aroi%20Ari&query_place_id=ChIJtQHqWQCf4jAR-2V0KYCFLw4","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"34","name":"Piranya@Siam (ปิรันย่า@สยาม)","area":"สยาม","district":"เขตปทุมวัน","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.8,"reviews":1463,"address":"430/27 สยามสแควร์ ซอย 9","phone":"+66 2 252 7195","website":"https://www.facebook.com/piranyasiam","mapsUrl":"https://www.google.com/maps/search/?api=1&query=Piranya%40Siam&query_place_id=ChIJgX7MQtKe4jARWUtEd9dE3zs","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"35","name":"เล ลาว — ร้านส้มตำรางวัลมิชลิน 5 ปีซ้อน","area":"อารีย์","district":"เขตพญาไท","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.5,"reviews":2460,"address":"65 ซ. พหลโยธิน 7","phone":"+66 62 453 5588","website":"https://facebook.com/laylao.restaurant","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B9%80%E0%B8%A5%20%E0%B8%A5%E0%B8%B2%E0%B8%A7%20Ari&query_place_id=ChIJ44AEpx2c4jARZKaM12f1HQI","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"36","name":"ซอยข่อยแน อาหารอีสานรสเด็ด","area":"อารีย์","district":"เขตพญาไท","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.8,"reviews":1957,"address":"436/8 ซอย พหลโยธิน 12","phone":"+66 94 335 3619","website":"https://m.facebook.com/soikoinae.ari","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%8B%E0%B8%AD%E0%B8%A2%E0%B8%82%E0%B9%88%E0%B8%AD%E0%B8%A2%E0%B9%81%E0%B8%99&query_place_id=ChIJCUASixKd4jARVlbwIyGIplU","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"37","name":"จากึมซอง สยามสแควร์ วัน","area":"สยาม","district":"เขตปทุมวัน","category":"เกาหลี / Korean","businessType":"Restaurant","rating":4.9,"reviews":3473,"address":"ชั้น 5 สยามสแควร์วัน","phone":"+66 66 156 4426","website":"https://www.facebook.com/jaguemsong","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%88%E0%B8%B2%E0%B8%81%E0%B8%B6%E0%B8%A1%E0%B8%8B%E0%B8%AD%E0%B8%87%20Siam%20Square%20One&query_place_id=ChIJI9ZH5vGf4jAR4EfOG4k_M8c","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"38","name":"อิ่มจัง","area":"พร้อมพงษ์","district":"เขตวัฒนา","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.1,"reviews":2004,"address":"669 ปาก ซอย สุขุมวิท 37","phone":"+66 62 812 2266","website":"","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%AD%E0%B8%B4%E0%B9%88%E0%B8%A1%E0%B8%88%E0%B8%B1%E0%B8%87&query_place_id=ChIJC9ylnwGf4jARk-u36KghWJI","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดี (4.0-4.49)"},{"id":"39","name":"SUSHI SEKI (EmQuartier)","area":"พร้อมพงษ์","district":"เขตวัฒนา","category":"ญี่ปุ่น / Japanese","businessType":"Restaurant","rating":4.8,"reviews":4316,"address":"EmQuartier ชั้น 4 ถ. สุขุมวิท","phone":"+66 2 003 6626","website":"https://www.facebook.com/SushiSekiThailand","mapsUrl":"https://www.google.com/maps/search/?api=1&query=SUSHI%20SEKI%20EmQuartier&query_place_id=ChIJp2dcohif4jARn3uNvezBlkU","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"40","name":"โกปี๊ฮับ ไพรม์ อารีย์","area":"อารีย์","district":"เขตพญาไท","category":"จีน / ติ่มซำ","businessType":"Restaurant","rating":4.8,"reviews":3431,"address":"33 ซอย อารีย์ 2","phone":"+66 80 992 4922","website":"https://kopihub.co/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B9%82%E0%B8%81%E0%B8%9B%E0%B8%B5%E0%B9%8A%E0%B8%AE%E0%B8%B1%E0%B8%9A%20%E0%B8%AD%E0%B8%B2%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B9%8C&query_place_id=ChIJgdqs_tuf4jARl5VCETZn0do","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"41","name":"ข้าวเหนียว","area":"อารีย์","district":"เขตพญาไท","category":"ไทย / อีสาน","businessType":"Cafe / Dessert","rating":4.6,"reviews":297,"address":"ซอย อารีย์สัมพันธ์ 7","phone":"+66 61 410 8888","website":"https://m.facebook.com/khaoniao.bkk","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%82%E0%B9%89%E0%B8%B2%E0%B8%A7%E0%B9%80%E0%B8%AB%E0%B8%99%E0%B8%B5%E0%B8%A2%E0%B8%A7%20Ari&query_place_id=ChIJmaKVftCf4jARDnQ_lIRq0zM","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"42","name":"อองตองข้าวซอย สาขา อารีย์","area":"อารีย์","district":"เขตพญาไท","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.3,"reviews":1860,"address":"31 พหลโยธิน ซอย 7","phone":"+66 2 003 5254","website":"","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%AD%E0%B8%AD%E0%B8%87%E0%B8%95%E0%B8%AD%E0%B8%87%E0%B8%82%E0%B9%89%E0%B8%B2%E0%B8%A7%E0%B8%8B%E0%B8%AD%E0%B8%A2%20Ari&query_place_id=ChIJT2m3lx2c4jARfziuf8CSZBY","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดี (4.0-4.49)"},{"id":"43","name":"ศรีตราด","area":"พร้อมพงษ์","district":"เขตวัฒนา","category":"ไทย / อีสาน","businessType":"Bar / Restaurant","rating":4.5,"reviews":2548,"address":"90 ซ. สุขุมวิท 33","phone":"+66 2 088 0968","website":"https://www.facebook.com/sritrat/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%A8%E0%B8%A3%E0%B8%B5%E0%B8%95%E0%B8%A3%E0%B8%B2%E0%B8%94&query_place_id=ChIJoc-7O_ye4jARa2GblY_w4Bo","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"44","name":"โคเบะทนเทกิ พร้อมพงษ์","area":"พร้อมพงษ์","district":"เขตวัฒนา","category":"ญี่ปุ่น / Japanese","businessType":"Restaurant","rating":4.6,"reviews":1932,"address":"595 ซ. สุขุมวิท 33/1","phone":"+66 96 862 1110","website":"https://m.facebook.com/kobetonteki.th/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B9%82%E0%B8%84%E0%B9%80%E0%B8%9A%E0%B8%B0%E0%B8%97%E0%B8%99%E0%B9%80%E0%B8%97%E0%B8%81%E0%B8%B4%20%E0%B8%9E%E0%B8%A3%E0%B9%89%E0%B8%AD%E0%B8%A1%E0%B8%9E%E0%B8%87%E0%B8%A9%E0%B9%8C&query_place_id=ChIJ71MxUnKf4jAR_nrxq8_tPIM","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"},{"id":"45","name":"นิคุโช","area":"พร้อมพงษ์","district":"เขตวัฒนา","category":"ญี่ปุ่น / Japanese","businessType":"Restaurant","rating":4.8,"reviews":8532,"address":"12 สุขุมวิท 31","phone":"+66 64 282 9392","website":"https://www.facebook.com/nikusho/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%99%E0%B8%B4%E0%B8%84%E0%B8%B8%E0%B9%82%E0%B8%8A&query_place_id=ChIJ46fu9HKf4jARupTR_jaL8cc","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":true,"hasPork":false,"ratingLevel":"ยอดเยี่ยม (4.8+)"},{"id":"46","name":"บ้านหญิง สยามเซ็นเตอร์","area":"สยาม","district":"เขตปทุมวัน","category":"ไทย / อีสาน","businessType":"Restaurant","rating":4.5,"reviews":1058,"address":"สยามเซ็นเตอร์ ชั้น 2 979 ถ. พระรามที่ 1","phone":"+66 2 028 8878","website":"http://www.baanyingfamily.com/","mapsUrl":"https://www.google.com/maps/search/?api=1&query=%E0%B8%9A%E0%B9%89%E0%B8%B2%E0%B8%99%E0%B8%AB%E0%B8%8D%E0%B8%B4%E0%B8%87%20Siam%20Center&query_place_id=ChIJ7Q2Zh82e4jARjXo1yUIK1n4","priceRange":"ไม่ระบุ","isHalal":false,"hasSeafood":false,"hasPork":false,"ratingLevel":"ดีมาก (4.5-4.79)"}];
+
+let selectedArea = 'all';
+let selectedSize = null;
+let selectedCat = 'all';
+let halalOnly = false;
+let vegOnly = false;
+let allergyExcludes = new Set();
+let currentResults = [];
+
+const FACTORS = [
+  ['ratingReview','รีวิว/คะแนน',25],
+  ['group','เหมาะกับกลุ่ม',20],
+  ['price','ราคาเหมาะสม',15],
+  ['travel','เดินทางสะดวก',15],
+  ['data','ข้อมูลครบถ้วน',15],
+  ['unique','ความพิเศษ',10]
+];
+
+function clamp(n,min,max) { return Math.max(min, Math.min(max, n)); }
+function safeNum(n) { return Number.isFinite(Number(n)) ? Number(n) : 0; }
+function hasText(v) { return typeof v === 'string' && v.trim().length > 0; }
+function lowerBlob(r) { return `${r.name} ${r.category} ${r.businessType} ${r.address} ${r.website}`.toLowerCase(); }
+
+function isVegetarianFriendly(r) {
+  const blob = lowerBlob(r);
+  if (r.category === 'สุขภาพ / สลัด / สเต็ก') return true;
+  if (r.category === 'คาเฟ่ / เบเกอรี่ / ของหวาน') return true;
+  if (blob.includes('โอ้กะจู๋') || blob.includes('salad') || blob.includes('healthy')) return true;
+  if (!r.hasPork && ['ไทย / อีสาน','ฟิวชั่น / International','จีน / ติ่มซำ','ชาบู / สุกี้','ญี่ปุ่น / Japanese'].includes(r.category)) return true;
+  return false;
+}
+
+function getGroupSizeRec(size) {
+  const map = {
+    '1-3': { label:'1–3 คน', note:'เหมาะกับร้านเล็ก คาเฟ่ หรือร้านที่ไม่ต้องจองล่วงหน้ามาก' },
+    '3-5': { label:'3–5 คน', note:'เหมาะกับโต๊ะกลุ่มเล็ก เลือกร้านได้กว้างที่สุด' },
+    '5-8': { label:'5–8 คน', note:'ควรเลือกร้านที่รองรับทีมและมีจำนวนรีวิวพอสมควร แนะนำโทรจอง' },
+    '8-12': { label:'8–12 คน', note:'เหมาะกับร้านที่เป็นระบบ มีที่นั่งเยอะหรืออยู่ในห้าง ควรโทรจองก่อนทุกครั้ง' }
+  };
+  return size ? map[size] : null;
+}
+
+function priceSuitability(r) {
+  if (r.priceRange && r.priceRange !== 'ไม่ระบุ') return 13;
+  if (['คาเฟ่ / เบเกอรี่ / ของหวาน','ไทย / อีสาน','จีน / ติ่มซำ'].includes(r.category)) return 12;
+  if (['ชาบู / สุกี้','เกาหลี / Korean','ฟิวชั่น / International'].includes(r.category)) return 10;
+  if (r.category.includes('ญี่ปุ่น')) return 9;
+  return 8;
+}
+
+function groupSuitability(r) {
+  let score = 12;
+  const reviews = safeNum(r.reviews);
+  if (selectedSize === '1-3') score = r.businessType?.includes('Cafe') ? 19 : 16;
+  else if (selectedSize === '3-5') score = 17;
+  else if (selectedSize === '5-8') score = ['ไทย / อีสาน','ชาบู / สุกี้','เกาหลี / Korean','ฟิวชั่น / International','จีน / ติ่มซำ'].includes(r.category) ? 18 : 14;
+  else if (selectedSize === '8-12') score = ['ชาบู / สุกี้','เกาหลี / Korean','ไทย / อีสาน','จีน / ติ่มซำ','ฟิวชั่น / International'].includes(r.category) ? 18 : 13;
+  if (reviews > 1500) score += 1.5;
+  if (reviews > 3500) score += 1;
+  if (r.businessType?.includes('Cafe') && ['5-8','8-12'].includes(selectedSize)) score -= 3;
+  return clamp(score, 0, 20);
+}
+
+function travelConvenience(r) {
+  let score = 9;
+  if (['สยาม','พร้อมพงษ์','อโศก'].includes(r.area)) score = 13;
+  if (r.area === 'อารีย์') score = 12;
+  if (r.area === 'ทองหล่อ') score = 11;
+  const blob = lowerBlob(r);
+  if (blob.includes('siam') || blob.includes('paragon') || blob.includes('emquartier') || blob.includes('center') || blob.includes('villa')) score += 1;
+  if (hasText(r.mapsUrl)) score += 1;
+  return clamp(score, 0, 15);
+}
+
+function dataCompleteness(r) {
+  let points = 0;
+  if (r.rating) points += 3;
+  if (r.reviews) points += 3;
+  if (hasText(r.address)) points += 3;
+  if (hasText(r.phone)) points += 2.5;
+  if (hasText(r.website)) points += 2;
+  if (hasText(r.mapsUrl)) points += 1.5;
+  return clamp(points, 0, 15);
+}
+
+function uniqueness(r) {
+  let score = 4.5;
+  const blob = lowerBlob(r);
+  if (r.rating >= 4.8) score += 1.2;
+  if (r.reviews > 2500) score += 1;
+  if (blob.includes('michelin') || blob.includes('มิชลิน') || blob.includes('pop-up') || blob.includes('chef') || blob.includes('snake') || blob.includes('factory')) score += 2;
+  if (['ญี่ปุ่น / Izakaya','ฟิวชั่น / International','ชาบู / สุกี้','เกาหลี / Korean'].includes(r.category)) score += .8;
+  return clamp(score, 0, 10);
+}
+
+function ratingReviewScore(r) {
+  const ratingPart = clamp((safeNum(r.rating) / 5) * 18, 0, 18);
+  const reviewPart = clamp((Math.log10(safeNum(r.reviews) + 1) / 4) * 7, 0, 7);
+  return ratingPart + reviewPart;
+}
+
+function aiScore(r) {
+  const breakdown = {
+    ratingReview: ratingReviewScore(r),
+    group: groupSuitability(r),
+    price: priceSuitability(r),
+    travel: travelConvenience(r),
+    data: dataCompleteness(r),
+    unique: uniqueness(r)
+  };
+  const total = Object.values(breakdown).reduce((a,b)=>a+b,0);
+  return { total: Math.round(total * 10) / 10, breakdown };
+}
+
+function explainFit(r, s) {
+  const reasons = [];
+  if (r.rating >= 4.8) reasons.push(`คะแนนสูงมาก ${r.rating.toFixed(1)}`);
+  else if (r.rating >= 4.5) reasons.push(`คะแนนดี ${r.rating.toFixed(1)}`);
+  if (r.reviews >= 2500) reasons.push(`รีวิวเยอะ ${r.reviews.toLocaleString()} รีวิว ทำให้ความน่าเชื่อถือสูง`);
+  if (selectedSize === '8-12') reasons.push('เหมาะกับการพิจารณาเป็นทีมใหญ่ 8–12 คน แต่ควรโทรจองก่อน');
+  else if (selectedSize) reasons.push(`เหมาะกับกลุ่ม ${getGroupSizeRec(selectedSize).label}`);
+  if (isVegetarianFriendly(r)) reasons.push('มีแนวโน้มมีตัวเลือกสำหรับมังสวิรัติ/ทานง่ายในทีม');
+  if (['สยาม','พร้อมพงษ์','อโศก'].includes(r.area)) reasons.push('เดินทางสะดวก เหมาะกับนัดรวมทีม');
+  if (hasText(r.phone)) reasons.push('มีเบอร์โทรสำหรับจองหรือยืนยันเงื่อนไขอาหาร');
+  return reasons.slice(0,3).join(' · ');
+}
+
+function tradeOffText(r) {
+  const t = [];
+  if (r.priceRange === 'ไม่ระบุ') t.push('ราคาในข้อมูลยังไม่ชัด ควรตรวจเมนูก่อนตัดสินใจ');
+  if (!hasText(r.website)) t.push('ไม่มีเว็บไซต์ในข้อมูล อาจต้องดู Maps/โทรสอบถาม');
+  if (r.hasSeafood && allergyExcludes.has('seafood')) t.push('มีอาหารทะเล ไม่เหมาะกับผู้แพ้อาหารทะเล');
+  if (r.hasPork && allergyExcludes.has('pork')) t.push('มีเนื้อหมู ไม่เหมาะกับผู้ไม่ทานหมู');
+  const allergenTags = getAllergenTags(r).map(x => x.replace(/<[^>]+>/g, ''));
+  if (allergyExcludes.has('gluten') && allergenTags.some(x=>x.includes('กลูเตน'))) t.push('มีความเสี่ยงกลูเตนจากประเภทอาหาร ควรถามร้านก่อนสั่ง');
+  if (allergyExcludes.has('nut') && allergenTags.some(x=>x.includes('ถั่ว') || x.includes('งา'))) t.push('มีความเสี่ยงถั่ว/งาจากประเภทอาหาร ควรถามร้านก่อนสั่ง');
+  if (allergyExcludes.has('dairy') && allergenTags.some(x=>x.includes('นม'))) t.push('มีความเสี่ยงนมหรือผลิตภัณฑ์นม ควรถามร้านก่อนสั่ง');
+  if (allergyExcludes.has('egg') && allergenTags.some(x=>x.includes('ไข่'))) t.push('มีความเสี่ยงไข่จากประเภทอาหาร ควรถามร้านก่อนสั่ง');
+  if (!isVegetarianFriendly(r) && (vegOnly || selectedCat === 'vegetarian')) t.push('ตัวเลือกมังสวิรัติอาจจำกัด ควรสอบถามร้าน');
+  if (selectedSize === '8-12') t.push('กลุ่ม 8–12 คนควรโทรจองและขอที่นั่งรวมล่วงหน้า');
+  return t.length ? t.join(' · ') : 'Trade-off ต่ำเมื่อเทียบกับร้านอื่นในผลลัพธ์ แต่ยังควรโทรยืนยันโต๊ะและเมนูเฉพาะทาง';
+}
+
+function insightText(results) {
+  if (!results.length) return [];
+  const avg = results.reduce((a,r)=>a+r._ai.total,0)/results.length;
+  const bestArea = [...results.reduce((m,r)=>m.set(r.area,(m.get(r.area)||0)+1), new Map()).entries()].sort((a,b)=>b[1]-a[1])[0];
+  const vegCount = results.filter(isVegetarianFriendly).length;
+  const highReview = results.filter(r=>r.reviews>=1500).length;
+  return [
+    `คะแนนความเหมาะสมเฉลี่ยของผลลัพธ์อยู่ที่ ${avg.toFixed(1)}/100 ใช้ดูภาพรวมความน่าเลือกหลังกรอง`,
+    `พื้นที่ที่พบมากที่สุดคือ ${bestArea?.[0] || '-'} (${bestArea?.[1] || 0} ร้าน) เหมาะใช้เป็นจุดนัดรวมทีม`,
+    `มีร้านที่น่าจะรองรับมังสวิรัติ ${vegCount} จาก ${results.length} ร้าน`,
+    `มีร้านรีวิวหนาแน่น 1,500+ รีวิว จำนวน ${highReview} ร้าน เหมาะกับการลดความเสี่ยงในการเลือก`
+  ];
+}
+
+function renderSummary(sorted) {
+  const box = document.getElementById('aiSummary');
+  if (!sorted.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const top3 = sorted.slice(0,3);
+  const topHtml = top3.map((r,i)=>`
+    <div class="top-item">
+      <div class="rank-no">${i+1}</div>
+      <div><div class="top-name">${escapeHtml(r.name)}</div><div class="top-reason">${escapeHtml(explainFit(r,r._ai))}</div></div>
+      <div class="top-score">${r._ai.total}/100</div>
+    </div>`).join('');
+  const insights = insightText(sorted).map(x=>`<li>${escapeHtml(x)}</li>`).join('');
+  const trade = top3.map((r,i)=>`<li><strong>อันดับ ${i+1}:</strong> ${escapeHtml(tradeOffText(r))}</li>`).join('');
+  box.innerHTML = `
+    <div class="summary-grid">
+      <div class="summary-card">
+        <h2>🏆 ร้านแนะนำ Top 3 ที่เหมาะที่สุด</h2>
+        <div class="top-list">${topHtml}</div>
+      </div>
+      <div class="insight-card">
+        <h2>📊 สรุปภาพรวมและข้อควรเช็ก</h2>
+        <ul>${insights}</ul>
+        <div style="height:10px"></div>
+        <ul>${trade}</ul>
+      </div>
+    </div>`;
+  box.style.display = 'block';
+}
+
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+}
+
+function doSearch() {
+  let results = RESTAURANTS.map(r => ({ ...r }));
+  if (selectedArea !== 'all') results = results.filter(r => r.area === selectedArea);
+  if (selectedCat !== 'all' && selectedCat !== 'vegetarian') results = results.filter(r => r.category === selectedCat);
+  if (selectedCat === 'vegetarian' || vegOnly) results = results.filter(isVegetarianFriendly);
+  if (halalOnly) results = results.filter(r => r.isHalal);
+  if (allergyExcludes.has('seafood')) results = results.filter(r => !r.hasSeafood);
+  if (allergyExcludes.has('pork')) results = results.filter(r => !r.hasPork);
+  results.forEach(r => r._ai = aiScore(r));
+  currentResults = results;
+  renderCards(results);
+  document.getElementById('resultsSection').style.display = 'block';
+  setTimeout(()=>document.getElementById('resultsSection').scrollIntoView({behavior:'smooth',block:'start'}), 80);
+}
+
+
+function selectedAllergyLabel(type) {
+  return allergyExcludes.has(type) ? ' tag-alert' : ' tag-caution';
+}
+
+function getAllergenTags(r) {
+  const tags = [];
+  const blob = lowerBlob(r);
+  const add = (type, icon, label, definite=false) => {
+    const cls = allergyExcludes.has(type) ? 'tag-alert' : (definite ? 'tag-warn' : 'tag-caution');
+    tags.push(`<span class="r-tag ${cls}">${icon} ${label}</span>`);
+  };
+
+  // ข้อมูลที่มีอยู่ในชุดข้อมูล: อาหารทะเล / หมู จะแสดงเป็น Tag ชัดเจน
+  if (r.hasSeafood) add('seafood', '🦐', 'ควรระวัง: อาหารทะเล', true);
+  if (r.hasPork) add('pork', '🐷', 'ควรระวัง: หมู', true);
+
+  // กลุ่มด้านล่างเป็นการเตือนจากประเภทอาหาร/ชื่อร้าน เพื่อให้ผู้ใช้รู้ว่าควรถามร้านก่อนสั่ง
+  const glutenCategories = ['ญี่ปุ่น / Japanese','ญี่ปุ่น / Izakaya','เกาหลี / Korean','จีน / ติ่มซำ','ชาบู / สุกี้','คาเฟ่ / เบเกอรี่ / ของหวาน','ฟิวชั่น / International'];
+  const nutCategories = ['ไทย / อีสาน','คาเฟ่ / เบเกอรี่ / ของหวาน','สุขภาพ / สลัด / สเต็ก'];
+  const dairyCategories = ['คาเฟ่ / เบเกอรี่ / ของหวาน','ฟิวชั่น / International','สุขภาพ / สลัด / สเต็ก'];
+  const eggCategories = ['ญี่ปุ่น / Japanese','คาเฟ่ / เบเกอรี่ / ของหวาน','จีน / ติ่มซำ','ฟิวชั่น / International'];
+
+  if (glutenCategories.includes(r.category) || /noodle|บะหมี่|ข้าวซอย|katsu|donburi|bakery|cafe/i.test(blob)) add('gluten', '🌾', 'อาจมีกลูเตน');
+  if (nutCategories.includes(r.category) || /ถั่ว|สลัด|dessert|bakery|cafe/i.test(blob)) add('nut', '🥜', 'อาจมีถั่ว/งา');
+  if (dairyCategories.includes(r.category) || /cafe|bakery|dessert|cream|milk|cheese|เค้ก|เบเกอรี่/i.test(blob)) add('dairy', '🥛', 'อาจมีนม');
+  if (eggCategories.includes(r.category) || /katsu|donburi|bakery|cafe|ข้าวซอย|ไข่/i.test(blob)) add('egg', '🥚', 'อาจมีไข่');
+
+  return tags;
+}
+
+function allergenAdviceText(r) {
+  const risks = getAllergenTags(r)
+    .map(x => x.replace(/<[^>]+>/g, '').replace(/^\S+\s*/, '').replace('ควรระวัง: ', '').replace('อาจมี', ''));
+  if (!risks.length) return 'ไม่มี Tag ความเสี่ยงเด่นจากชุดข้อมูล แต่ยังควรถามร้านเรื่องวัตถุดิบและการปนเปื้อนก่อนสั่ง';
+  return `Tag เตือนเบื้องต้น: ${risks.join(' · ')} — ควรยืนยันกับร้านโดยตรง โดยเฉพาะผู้แพ้อาหารรุนแรง`;
+}
+
+function renderCards(results) {
+  const sort = document.getElementById('sortSelect').value;
+  let sorted = results.map(r => r._ai ? r : {...r, _ai: aiScore(r)});
+  if (sort === 'ai') sorted.sort((a,b)=>b._ai.total-a._ai.total);
+  else if (sort === 'rating') sorted.sort((a,b)=>b.rating-a.rating || b.reviews-a.reviews);
+  else if (sort === 'reviews') sorted.sort((a,b)=>b.reviews-a.reviews);
+  else sorted.sort((a,b)=>a.name.localeCompare(b.name,'th'));
+  document.getElementById('resultCount').textContent = sorted.length;
+  renderSummary(sorted);
+  const grid = document.getElementById('restaurantGrid');
+  if (!sorted.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="big-icon">🔍</div><h3>ไม่พบร้านอาหาร</h3><p>ลองปรับตัวกรองให้น้อยลง เช่น เลือกทั้งหมด หรือปิดตัวกรองฮาลาล/มังสวิรัติ/แพ้อาหารบางรายการ</p></div>`;
+    return;
+  }
+  const sizeRec = getGroupSizeRec(selectedSize);
+  let html = '';
+  if (sizeRec) html += `<div class="notice"><span>💡</span><span><strong>${sizeRec.label}</strong> — ${sizeRec.note}</span></div>`;
+  if (allergyExcludes.has('gluten') || allergyExcludes.has('nut') || allergyExcludes.has('dairy') || allergyExcludes.has('egg')) {
+    const a=[]; if(allergyExcludes.has('gluten')) a.push('กลูเตน'); if(allergyExcludes.has('nut')) a.push('ถั่ว'); if(allergyExcludes.has('dairy')) a.push('นม'); if(allergyExcludes.has('egg')) a.push('ไข่');
+    html += `<div class="notice" style="background:rgba(232,115,90,.08);border-color:rgba(232,115,90,.25);color:#f2a08e"><span>⚠️</span><span>คุณแจ้งการแพ้อาหาร: <strong>${a.join(', ')}</strong> — กรุณาแจ้งร้านโดยตรงก่อนสั่งทุกครั้ง</span></div>`;
+  }
+  sorted.forEach((r,i)=>{
+    const tags = [`<span class="r-tag tag-area">📍 ${escapeHtml(r.area)}</span>`, `<span class="r-tag">${escapeHtml(r.category)}</span>`];
+    if (r.isHalal) tags.push(`<span class="r-tag tag-halal">☪️ ฮาลาล</span>`);
+    if (isVegetarianFriendly(r)) tags.push(`<span class="r-tag tag-veg">🥬 Vegetarian Friendly</span>`);
+    tags.push(...getAllergenTags(r));
+    const bars = FACTORS.map(([key,label,max])=>{
+      const value = r._ai.breakdown[key];
+      const pct = clamp(value/max*100,0,100);
+      return `<div class="bar-row"><span>${label}</span><div class="bar"><div style="width:${pct}%"></div></div><strong>${value.toFixed(1)}</strong></div>`;
+    }).join('');
+    html += `
+      <div class="r-card" style="animation-delay:${i*.025}s">
+        <div class="r-main">
+          <div>
+            <div class="r-name">${escapeHtml(r.name)}</div>
+            <div class="r-sub">${escapeHtml(r.district)} · ${escapeHtml(r.businessType || 'Restaurant')}</div>
+            <div class="r-tags">${tags.join('')}</div>
+            <div class="allergen-note"><strong>แพ้อาหารควรเช็ก:</strong> ${escapeHtml(allergenAdviceText(r))}</div>
+            <div class="r-info">
+              <div>⭐ Google Rating: <strong>${safeNum(r.rating).toFixed(1)}</strong> (${safeNum(r.reviews).toLocaleString()} รีวิว)</div>
+              <div>📌 ${escapeHtml(r.address || 'ไม่ระบุที่อยู่')}</div>
+              <div>💸 ราคา: ${escapeHtml(r.priceRange || 'ไม่ระบุ')}</div>
+              ${r.phone ? `<div>📞 <a href="tel:${escapeHtml(r.phone)}">${escapeHtml(r.phone)}</a></div>` : ''}
+            </div>
+          </div>
+          <div class="scorebox"><div class="label">คะแนนแนะนำ</div><div class="num">${r._ai.total}</div><div class="unit">/ 100 คะแนน</div></div>
+        </div>
+        <div class="breakdown">${bars}</div>
+        <div class="ai-text">
+          <div class="mini-note"><strong>เหตุผลที่เหมาะ:</strong><br>${escapeHtml(explainFit(r,r._ai))}</div>
+          <div class="mini-note"><strong>ข้อควรเช็ก:</strong><br>${escapeHtml(tradeOffText(r))}</div>
+        </div>
+        <div class="r-actions">
+          <a class="r-btn btn-maps" href="${escapeHtml(r.mapsUrl)}" target="_blank" rel="noopener">🗺️ Google Maps</a>
+          ${r.website ? `<a class="r-btn" href="${escapeHtml(r.website)}" target="_blank" rel="noopener">🌐 เว็บไซต์</a>` : ''}
+          ${r.phone ? `<a class="r-btn" href="tel:${escapeHtml(r.phone)}">📞 โทรจอง</a>` : ''}
+        </div>
+      </div>`;
+  });
+  grid.innerHTML = html;
+}
+
+
+
+function resetFilters() {
+  selectedArea = 'all'; selectedSize = null; selectedCat = 'all'; halalOnly = false; vegOnly = false; allergyExcludes = new Set();
+  document.querySelectorAll('.active').forEach(el=>el.classList.remove('active'));
+  document.querySelector('#areaGroup .pill[data-value="all"]').classList.add('active');
+  document.querySelector('#catGroup .pill[data-value="all"]').classList.add('active');
+  document.getElementById('halalToggle').textContent = '☪️ แสดงเฉพาะร้านฮาลาล';
+  document.getElementById('vegToggle').textContent = '🥬 มังสวิรัติ';
+  doSearch();
+}
+
+document.querySelectorAll('#areaGroup .pill').forEach(p=>p.addEventListener('click',()=>{
+  document.querySelectorAll('#areaGroup .pill').forEach(x=>x.classList.remove('active'));
+  p.classList.add('active'); selectedArea = p.dataset.value;
+}));
+document.querySelectorAll('#sizeGroup .size-card').forEach(c=>c.addEventListener('click',()=>{
+  document.querySelectorAll('#sizeGroup .size-card').forEach(x=>x.classList.remove('active'));
+  if (selectedSize === c.dataset.value) selectedSize = null; else { selectedSize = c.dataset.value; c.classList.add('active'); }
+}));
+document.querySelectorAll('#catGroup .pill').forEach(p=>p.addEventListener('click',()=>{
+  document.querySelectorAll('#catGroup .pill').forEach(x=>x.classList.remove('active'));
+  p.classList.add('active'); selectedCat = p.dataset.value;
+}));
+document.getElementById('halalToggle').addEventListener('click',function(){
+  halalOnly = !halalOnly; this.classList.toggle('active',halalOnly); this.textContent = halalOnly ? '☪️ ✓ แสดงเฉพาะร้านฮาลาล' : '☪️ แสดงเฉพาะร้านฮาลาล';
+});
+document.getElementById('vegToggle').addEventListener('click',function(){
+  vegOnly = !vegOnly; this.classList.toggle('active',vegOnly); this.textContent = vegOnly ? '🥬 ✓ มังสวิรัติ' : '🥬 มังสวิรัติ';
+});
+document.querySelectorAll('#allergyGroup .allergy-tag').forEach(tag=>tag.addEventListener('click',()=>{
+  const t = tag.dataset.type;
+  if (allergyExcludes.has(t)) { allergyExcludes.delete(t); tag.classList.remove('active'); }
+  else { allergyExcludes.add(t); tag.classList.add('active'); }
+}));
+
+doSearch();
+</script>
+</body>
+</html>
